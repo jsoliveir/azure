@@ -1,0 +1,53 @@
+version: v3.0
+
+azure:
+  resourceGroup: resource-group
+  subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+  location: northeurope
+  tags:
+    app: mycdn
+
+  aadRoleAssingments:
+  - group: Role-Developer
+    roles: 
+    - Storage Blob Data Reader
+    - Storage Blob Data Owner
+    - Reader
+
+  networks:
+    vnet-01:
+      location: westeurope
+      securityRules: {}
+      subnets:
+        apps: 10.8.10.0/24
+      serviceEndpoints: []
+
+  frontDoors:
+    afd-01:
+      dnsZones:
+        habitushealth.net:
+          subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+          resourceGroup: resource-group
+      endpoints:
+        production: 
+          domain: cdn.contoso.com
+          dnsZone: contoso.com
+      origins:
+        production: xxxx.blob.core.windows.net
+      routes:
+        production:
+          endpoint: production
+          origin: production
+          cache: true
+          rulesets:
+            - usesecurity
+            - usecache7d
+            - default
+      
+  storageAccounts:
+    asa-prd-01:
+      kind: BlockBlobStorage
+      sku: Premium_ZRS
+      allowedIps: []
+      containers:
+        - static:public

@@ -1,0 +1,192 @@
+rulesets:
+
+  # Default CDN cache (7d)
+  usecache7d:         
+  # https://learn.microsoft.com/en-us/azure/templates/microsoft.cdn/profiles/rulesets/rules?pivots=deployment-language-bicep
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: [
+      # https://learn.microsoft.com/en-us/azure/templates/microsoft.cdn/profiles/rulesets/rules?pivots=deployment-language-bicep#deliveryrulecondition
+    ]
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerAction: Append
+      headerName: cache-control
+      value: "public, max-age=86400, must-revalidate"
+  - type: RouteConfigurationOverride
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleRouteConfigurationOverrideActionParameters
+      cacheConfiguration:
+        queryStringCachingBehavior: UseQueryString
+        isCompressionEnabled: Enabled
+        cacheBehavior: OverrideAlways
+        cacheDuration: "7.00:00:00"
+
+
+  # Default CDN cache (10m)
+  usecache10m:
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerAction: Overwrite
+      headerName: cache-control
+      value: "public, max-age=600, must-revalidate"
+  - type: RouteConfigurationOverride
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleRouteConfigurationOverrideActionParameters
+      cacheConfiguration:
+        queryStringCachingBehavior: UseQueryString
+        isCompressionEnabled: Enabled
+        cacheBehavior: OverrideAlways
+        cacheDuration: "0.00:10:00"
+
+
+  # Security Headers
+  usesecurity:
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: X-Frame-Options
+      headerAction: Append
+      value: deny 
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: Permissions-Policy
+      headerAction: Append
+      value: >-
+        accelerometer=(), 
+        magnetometer=(), 
+        geolocation=(), 
+        microphone=(), 
+        gyroscope=(), 
+        payment=(), 
+        camera=(), 
+        usb=()
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: Feature-Policy
+      headerAction: Append
+      value: >-
+        accelerometer 'none'; 
+        magnetometer 'none'; 
+        geolocation 'none'; 
+        microphone 'none'; 
+        gyroscope 'none'; 
+        payment 'none';' 
+        camera 'none'; 
+        usb 'none'
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: Content-Security-Policy
+      headerAction: Append
+      value: >-
+        *.int.habitushealth.net 
+        *.habitushealth.net 
+        fonts.googleapis.com 
+        fonts.gstatic.com 
+        cdn.jsdelivr.net 
+        unsafe-inline 
+        unsafe-eval  
+        default-src 
+        self 
+        data: 
+        ws:
+
+
+  # Blazor environment (Integration)
+  blazorint:
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: Blazor-Environment
+      headerAction: Append
+      value: Staging
+
+
+  # Blazor environment (Production)
+  blazorprd:
+  - type: ModifyResponseHeader
+    matchProcessingBehavior: Continue 
+    conditions: []
+    parameters:
+      typeName: DeliveryRuleHeaderActionParameters  
+      headerName: Blazor-Environment
+      headerAction: Append
+      value: Production
+  - type: UrlRewrite            
+    matchProcessingBehavior: Continue
+    parameters:
+      typeName: DeliveryRuleUrlRewriteActionParameters
+      queryStringCachingBehavior: UseQueryString
+      preserveUnmatchedPath: false
+      sourcePattern: /appsettings.*.json
+      destination: /404.html
+    conditions: 
+    - name: 'UrlPath'
+      parameters: 
+        typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+        negateCondition: false
+        operator: 'RegEx'
+        matchValues:
+        - appsettings\.(.*)\.json
+    - name: 'UrlPath'
+      parameters: 
+        typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+        negateCondition: true
+        operator: 'RegEx'
+        matchValues:
+        - Production
+
+  # Dashboard rewrite rules
+  dashboard:  
+  - type: UrlRewrite            
+    matchProcessingBehavior: Continue
+    parameters:
+      typeName: DeliveryRuleUrlRewriteActionParameters
+      queryStringCachingBehavior: UseQueryString
+      preserveUnmatchedPath: true
+      destination: /dashboard/latest/
+      sourcePattern: /
+    conditions: 
+    - name: 'UrlPath'
+      parameters: 
+        typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+        negateCondition: false
+        operator: 'RegEx'
+        matchValues:
+        - \.[\w]+$
+  - type: UrlRewrite  
+    matchProcessingBehavior: Continue
+    parameters:
+      typeName: DeliveryRuleUrlRewriteActionParameters
+      queryStringCachingBehavior: UseQueryString
+      destination: /dashboard/latest/index.html
+      preserveUnmatchedPath: false
+      sourcePattern: /
+    conditions: 
+    - name: 'UrlPath'
+      parameters: 
+        typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+        negateCondition: true
+        operator: 'RegEx'
+        matchValues:
+        - \.[\w]+$

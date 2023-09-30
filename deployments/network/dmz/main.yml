@@ -1,0 +1,96 @@
+version: v3.0
+azure:
+  subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+  resourceGroup: habitus-dmz-eu
+  location: northeurope
+  tags:
+    app: habitus-dmz-eu
+
+  aadRoleAssingments: []
+
+  logAnalyticsWorkspace:
+    location: northeurope
+
+  keyvault:
+    softDeleteRetentionInDays: 7
+    copyFrom:
+      - subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+        resourceGroup: from-key-vault-group
+        keyvault: from-key-vault-name
+        secret: from-secret-name
+        name: to-secret-name
+
+  networks:
+    vnet-01:
+      location: northeurope
+      securityRules: {}
+        # allow-all:
+        #   destinationPortRange: '*'
+        #   direction: Inbound
+        #   access: Allow
+        #   protocol: '*'
+      subnets:
+        containers: 10.8.10.0/24
+        gateways: 10.8.11.0/24
+      subnetDelegations:
+        containers:
+          - Microsoft.ContainerInstance/containerGroups
+      serviceEndpoints:
+        - Microsoft.KeyVault
+        - Microsoft.Storage
+
+  containers:
+    vpn-01: &twingate
+      image: twingate/connector:1
+      network: vnet-01
+      subnet: containers
+      cpu: '0.20'
+      mem: '0.20'
+      environment:
+        TWINGATE_NETWORK: 
+          value: ''
+          secret: false
+        TWINGATE_TIMESTAMP_FORMAT: 
+          secret: false
+          value: ''
+        TWINGATE_ACCESS_TOKEN: 
+          value: ''
+          secret: true
+        TWINGATE_REFRESH_TOKEN: 
+          value: ''
+
+  gateways:
+    agw-01: 
+      network: vnet-01
+      subnet: gateways
+      privateIp: 10.8.11.254
+      capcity: 1 
+      certificates: 
+        production:
+          secretName: habitushealth-net
+      listeners: 
+        # Production - Public
+        api.production.net: 
+          backend_protocol: 'Http'
+          backend_pool: [api.aks-01.eu.habitushealth.net]
+          certificate: production
+          protocol: 'Https'
+          public: true
+        # Development - Private
+        api.development.net: 
+          backend_pool: [dashboard.aks-01.int.habitushealth.net]
+          backend_protocol: 'Http'
+          certificate: integration
+          protocol: 'Https'
+          public: false
+        
+  virtualMachines: {}
+    # nva-01:
+    #   vmSize: Standard_B1ls
+    #   privateIp: 10.8.0.5
+    #   publicIp: true
+    #   network: vnet-01
+    #   subnet: gateways
+    #   ipForwading: true
+    #   scripts: 
+    #     - nva.sh

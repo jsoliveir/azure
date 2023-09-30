@@ -1,0 +1,59 @@
+version: v3.0
+
+azure:
+  subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+  resourceGroup: resource-group
+  location: northeurope
+  tags:
+    app: dns
+
+  aadRoleAssingments: []
+
+  # PUBLIC DNS ZONES
+  publicDnsZones:
+    contose.com:
+      - name: '@'
+        values: [text record]
+        type: TXT
+        ttl: 3600
+      - name: autodiscover
+        value: autodiscover.outlook.com
+        type: CNAME
+        ttl: 3600
+      - name: '@'
+        values: [xxxx.protection.outlook.com]
+        type: MX
+        ttl: 3600
+      - name: '@'
+        values: [1.2.3.4]
+        type: A
+        ttl: 3600
+
+  # PRIVATE DNS ZONES
+  privateDnsZones:
+    privatelink.mysql.database.azure.com: []
+    privatelink.redis.cache.windows.net: []
+    privatelink.servicebus.windows.net: []
+    privatelink.blob.core.windows.net: []
+    privatelink.file.core.windows.net: []
+    privatelink.dfs.core.windows.net: []
+    privatelink.database.windows.net: []
+    privatelink.azurestaticapps.net: []
+    privatelink.service.signalr.net: []
+    privatelink.azurewebsites.net: []
+    privatelink.azurecr.io: []
+    development.net: []
+    production.net:
+      - name: 'api'
+        values: [1.2.3.4]
+        type: A
+        ttl: 60
+      - name: cdn
+        value: my.example.net
+        type: CNAME
+        ttl: 60
+      - name: "*.aks-01"
+        values: [1.2.3.4]
+        type: A
+        ttl: 60
+

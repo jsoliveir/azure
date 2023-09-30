@@ -1,0 +1,5 @@
+network:
+  subscription: xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx
+  dnszones:
+    resourceGroup: dns-resource-group
+

@@ -1,0 +1,25 @@
+version: v3.0
+
+azure:
+  subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+
+  peerings:
+    network-1:
+    - network-2
+    network-3:
+    - network-1
+
+  networks:
+    network-1:
+      subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+      resourceGroup: resource-group-1
+
+    network-2:
+      subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+      resourceGroup: resource-group-2
+
+    network-3:
+      subscription: xxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+      resourceGroup: resource-group-3
+
+    
